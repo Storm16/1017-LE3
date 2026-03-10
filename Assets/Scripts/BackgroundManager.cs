@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class BackgroundManager : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class BackgroundManager : MonoBehaviour
 
     private Transform lastBackground;
     private Renderer lastRenderer;
-    private float bacckgroundWidth;
+    private float backgroundWidth;
     private float nextSpawnAtCamRightX; // world X where camera-right must reach to spawn again
 
     private List<GameObject> backgrounds = new List<GameObject>();
@@ -16,7 +17,7 @@ public class BackgroundManager : MonoBehaviour
 
     private void Start()
     {
-        If (1cam) cam = Camera.main;
+        if (!cam) cam = Camera.main;
 
         // Create object pool
         for (int i = 0; i < objectPoolSize; i++)
@@ -25,6 +26,10 @@ public class BackgroundManager : MonoBehaviour
             ReturnToPool(go);
             backgrounds.Add(go);
         }
+    }
+
+    public void Initialize()
+    {
         lastBackground = GetNextObject().transform;
         lastRenderer = lastBackground.GetComponent<Renderer>();
         backgroundWidth = lastRenderer.bounds.size.x;
@@ -39,7 +44,7 @@ public class BackgroundManager : MonoBehaviour
     {
         foreach (GameObject go in backgrounds)
         {
-            if (!go.activeSet)
+            if (!go.activeSelf)
             {
                 go.SetActive(true);
                 return go;

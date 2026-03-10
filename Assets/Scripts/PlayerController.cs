@@ -8,11 +8,15 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     // Edit for source control
-    [SerializeField] private float speed;
+    [SerializeField] private float speed = 5;
+    [SerializeField] private float jumpForce = 8;
+    [SerializeField] private float groundCheckDistance = 0.1f;
 
+    private Rigidbody2D rb;
     private Vector3 startPosition;
+    private bool jumpPressed;
 
-    private void Start()
+    public void Initialize()
     {
         startPosition = transform.position;
     }
@@ -37,9 +41,9 @@ public class PlayerController : MonoBehaviour
     private void Jump()
     {
         // Reset vertical speed for consistent jump height
-        Vector2.velocity = rb.LinearVelocity;
+        Vector2 velocity = rb.linearVelocity;
         velocity.y = 0;
-        rb.LinearVelocity = velocity;
+        rb.linearVelocity = velocity;
 
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
@@ -55,7 +59,7 @@ public class PlayerController : MonoBehaviour
 
     public void Reset()
     {
-        rb.LinearVelocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
 
         transform.position = startPosition;
         transform.rotation = Quaternion.identity;

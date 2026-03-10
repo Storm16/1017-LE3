@@ -15,9 +15,39 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     public GameState CurrentGameState { get; private set; }
     private SoundManager soundManager;
-    public SoundManager SoundManager;
+    public SoundManager SoundManager
+    {
+        get
+        {
+            if (soundManager == null)
+            {
+                soundManager = FindFirstObjectByType<SoundManager>();
+            }
+            return soundManager;
+        }
+        private set
+        {
+            soundManager = value;
+        }
+    }
+
     private SegmentSpawner segmentSpawner;
-    public SegmentSpawner SegmentSpawner;
+    public SegmentSpawner SegmentSpawner
+    {
+        get
+        {
+            if (segmentSpawner == null)
+            {
+                segmentSpawner = FindFirstObjectByType<SegmentSpawner>();
+            }
+            return segmentSpawner;
+        }
+        private set
+        {
+            segmentSpawner = value;
+        }
+    }
+
     private PlayerController player;
     public PlayerController Player
     {
@@ -59,9 +89,9 @@ public class GameManager : MonoBehaviour
         {
             if (backgroundManager == null)
             {
-                uiManager = FindFirstObjectByType<BackgroundManager>();
+                backgroundManager = FindFirstObjectByType<BackgroundManager>();
             }
-            return backgroundMamnager;
+            return backgroundManager;
         }
         private set
         {
@@ -93,10 +123,8 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        SceneManager.sceneLoaded
+        //SceneManager.sceneLoaded
         CurrentGameState = GameState.InMenu;
-        UIManager.Initialize();
-        BackgroundManager.Initialize();
     }
 
     public void PlayGame()
@@ -111,7 +139,7 @@ public class GameManager : MonoBehaviour
         SetGameState(GameState.InGame);
 
         SegmentSpawner.Initialize();
-        player.Initialize();
+        Player.Initialize();
         UIManager.OnPlayPressed();
         BackgroundManager.Reset();
         // timer.Initialize();

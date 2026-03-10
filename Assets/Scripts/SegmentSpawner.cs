@@ -1,53 +1,81 @@
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 
 public class SegmentSpawner : MonoBehaviour
 {
-    [SerializeField] private GameObject player;
     [SerializeField] private GameObject segmentPrefab, segmentPrefab2;
-    [SerializeField] private float gapSize;
     [SerializeField] private float maxDistanceFromPlayer;
-
+    [SerializeField] private int segmentListSize = 5;
 
     private Renderer lastRender, currentRender;
-    private GameObject lastGameObject, currentGameobject;
+    private GameObject lastGameObject, currentGameObject;
+    private List<GameObject> segments = new();
+    private float gapSize = 0.5f;
+    private GameObject player;
 
-    private void Start()
+    public void Initialize()
     {
+        player = GameManager.Instance.Player.gameObject;
+
         // Segment 1
         lastGameObject = Instantiate(segmentPrefab, new Vector3(player.transform.position.x, player.transform.position.y - 1, 0), Quaternion.identity, transform);
         lastRender = lastGameObject.GetComponent<Renderer>();
-
+        segments.Add(lastGameObject);
 
         // Segment 2
-        currentGameobject = Instantiate(segmentPrefab, transform);
-        currentRender = currentGameobject.GetComponent<Renderer>();
+        currentGameObject = Instantiate(segmentPrefab, transform);
+        currentRender = currentGameObject.GetComponent<Renderer>();
+        segments.Add(currentGameObject);
 
-
-        // Last Render and current render
         float xSpawnPosition = lastRender.bounds.max.x + (currentRender.bounds.size.x / 2) + gapSize;
-        currentGameobject.transform.position = new Vector3(xSpawnPosition, player.transform.position.y - 1 , 0);
+        currentGameObject.transform.position = new Vector3(xSpawnPosition, player.transform.position.y - 1, 0);
 
-        lastGameObject = currentGameobject;
+        lastGameObject = currentGameObject;
         lastRender = currentRender;
     }
 
-
     private void Update()
     {
-        // 18.43 + 7.5 + 0.5 = 26.48
-        // Last GameObject.bounds.max.x < player.position.x + maxDistanceFromPlayer
+        if (lastRender == null || player == null) return;
 
-        if (lastRender.bounds.max.x > player.transform.position.x + maxDistanceFromPlayer)
+        if (lastRender.bounds.max.x < player.transform.position.x + maxDistanceFromPlayer)
         {
-            currentGameobject = Instantiate(segmentPrefab2, transform);
-            currentRender = currentGameobject.GetComponent<Renderer>();
+            gapSize = Random.Range(0.5f, 1.5f);
+            float heightOffset = Random.Range(-1.5f, 1.5f);
+
+            currentGameObject = Instantiate(segmentPrefab2, transform);
+            currentRender = currentGameObject.GetComponent<Renderer>();
 
             float xSpawnPosition = lastRender.bounds.max.x + (currentRender.bounds.size.x / 2) + gapSize;
-            currentGameobject.transform.position = new Vector3(xSpawnPosition, player.transform.position.y - 1, 0);
+            currentGameObject.transform.position = new Vector3(xSpawnPosition, lastGameObject.transform.position.y + heightOffset, 0);
+            segments.Add(currentGameObject);
 
-            lastGameObject = currentGameobject;
+            if (segments.Count > segmentListSize)
+            {
+                Destroy(segments[0]);
+                segments.RemoveAt(0);
+            }
+
+            lastGameObject = currentGameObject;
             lastRender = currentRender;
         }
     }
+
+    public void Reset()
+    {
+        lastRender = null;
+        currentRender = null;
+
+        lastGameObject = null;
+        currentGameObject = null;
+
+        foreach (GameObject gameObject in segments)
+        {
+            Destroy(gameObject);
+        }
+
+        segments.Clear();
+    }
 }
+
