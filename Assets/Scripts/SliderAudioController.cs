@@ -14,7 +14,16 @@ public class SliderAudioController : MonoBehaviour
 
     private void Start()
     {
-        ChangeSoundVolume(slider.value);
+        switch (soundType)
+        {
+            case ESoundType.Music:
+                slider.value = SoundManager.Instance.GetMusicVolume();
+                break;
+
+            case ESoundType.SFX:
+                slider.value = SoundManager.Instance.GetSFXVolume();
+                break;
+        }
     }
 
     private void OnEnable()
@@ -32,11 +41,11 @@ public class SliderAudioController : MonoBehaviour
         switch (soundType)
             {
             case ESoundType.Music:
-                GameManager.Instance.SoundManager.ChangeMusicVolume(newVolume);
+                SoundManager.Instance.ChangeMusicVolume(newVolume);
                 break;
 
             case ESoundType.SFX:
-                GameManager.Instance.SoundManager.ChangeSFXVolume(newVolume);
+                SoundManager.Instance.ChangeSFXVolume(newVolume);
                 break;
         }
     }

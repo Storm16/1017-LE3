@@ -99,16 +99,35 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private TimerController Timer;
+
+    public TimerController timer
+    {
+        get
+        {
+            if (Timer == null)
+            {
+                Timer = FindFirstObjectByType<TimerController>();
+            }
+            return Timer;
+        }
+        private set
+        {
+            Timer = value;
+        }
+    }
+
     private void Awake()
     {
         if (Instance != null)
         {
-            Destroy(gameObject);
+            Destroy(gameObject); // Ensure only one GameManager persists
             return;
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(gameObject);  // Ensure GameManager persists across scenes
+        Debug.Log("GameManager is set to DontDestroyOnLoad");
     }
 
     private void OnEnable()
@@ -125,6 +144,8 @@ public class GameManager : MonoBehaviour
     {
         //SceneManager.sceneLoaded
         CurrentGameState = GameState.InMenu;
+
+        Debug.Log("Current Game State at Start: " + CurrentGameState);
     }
 
     public void PlayGame()
@@ -136,19 +157,24 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
+        Debug.Log("Starting Game...");
+
         SetGameState(GameState.InGame);
 
         SegmentSpawner.Initialize();
         Player.Initialize();
         UIManager.OnPlayPressed();
         BackgroundManager.Reset();
-        // timer.Initialize();
+        timer.Initialize();
     }
 
     public void GameOver()
     {
+        Debug.Log("Game Over...");
+
         SetGameState(GameState.GameOver);
         SceneManager.LoadScene("GameOverScene");
+        timer.Stop();
     }
 
     public void RestartGame()
@@ -156,12 +182,14 @@ public class GameManager : MonoBehaviour
         player.Reset();
         SegmentSpawner.Reset();
         UIManager.OnResetPressed();
-        // timer.Reset();
+        timer.Reset();
         SetGameState(GameState.InMenu);
     }
 
     public void SetGameState(GameState state)
     {
+        Debug.Log("Setting GameState: " + state);  // Log state change
+
         CurrentGameState = state;
     }
 }

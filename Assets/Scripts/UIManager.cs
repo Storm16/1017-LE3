@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
-    [SerializeField] private GameObject playButton, resetButton, gameOverButton;
+    [SerializeField] private GameObject playButton, resetButton, gameOverButton, TimerUI;
 
     private void Start()
     {
@@ -14,8 +14,7 @@ public class UIManager : MonoBehaviour
         playButton.SetActive(true);
         resetButton.SetActive(false);
         gameOverButton.SetActive(false);
-
-        // TimerUI.SetActive(false);
+        TimerUI.SetActive(false);
     }
 
     public void OnPlayPressed()
@@ -23,8 +22,7 @@ public class UIManager : MonoBehaviour
         playButton.SetActive(false);
         resetButton.SetActive(true);
         gameOverButton.SetActive(true);
-
-        // TimerUI.SetActive(true);
+        TimerUI.SetActive(true);
     }
 
     public void OnResetPressed()

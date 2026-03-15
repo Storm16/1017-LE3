@@ -2,34 +2,121 @@ using UnityEngine;
 
 /// <summary>
 /// A script that handles player movement.
-/// In it's currwnt state it only moves the player laterally in the positive x.
+/// In its current state it moves the player laterally and allows jumping.
 /// </summary>
-
 public class PlayerController : MonoBehaviour
 {
-    // Edit for source control
     [SerializeField] private float speed = 5;
     [SerializeField] private float jumpForce = 8;
     [SerializeField] private float groundCheckDistance = 0.1f;
+    [SerializeField] private LayerMask groundLayer;
 
     private Rigidbody2D rb;
     private Vector3 startPosition;
     private bool jumpPressed;
 
+    private void Start()
+    {
+        Debug.Log("PlayerController Start Called"); // This will confirm if the Start method is called
+        if (rb == null) return;
+    }
+
     public void Initialize()
     {
+        rb = GetComponent<Rigidbody2D>();
         startPosition = transform.position;
+
+        // Ensure the Rigidbody is in a correct initial state
+        if (rb != null)
+        {
+            rb.simulated = true;  // Allow physics simulation when not frozen
+            rb.gravityScale = 1f; // Restore gravity to normal when unfreezing
+        }
     }
 
     void Update()
     {
-        if (GameManager.Instance.CurrentGameState != GameState.InGame) return;
+        if (rb == null) return;
 
-        // Calculate the distance we should move the object on a per frame basis. -> Make it frame rate independent.
+        Debug.Log("Current GameState: " + GameManager.Instance.CurrentGameState);  // Log current state
+
+        switch (GameManager.Instance.CurrentGameState)
+        {
+            case GameState.InMenu:
+                Debug.Log("InMenu State: Freezing Player");
+                FreezePlayer();
+                break;
+
+            case GameState.InGame:
+                Debug.Log("InGame State: Unfreezing Player");
+                UnfreezePlayer();
+                HandleMovement();
+                break;
+
+            case GameState.GameOver:
+                Debug.Log("GameOver State: Freezing Player");
+                FreezePlayer();
+                break;
+        }
+
+        jumpPressed = false;
+    }
+
+    private void FreezePlayer()
+    {
+        Debug.Log("Freezing Player.");
+
+        // Temporarily unfreeze the game world to test if gravity scale works
+        Time.timeScale = 1f;  // Unfreeze game world temporarily
+
+        rb.linearVelocity = Vector2.zero;  // Stop movement
+        rb.angularVelocity = 0f;            // Stop rotation
+        rb.gravityScale = 0f;               // Disable gravity
+        rb.simulated = false;               // Disable physics
+
+        Debug.Log("Gravity scale after freezing: " + rb.gravityScale);
+
+        // Then freeze the game world again
+        Time.timeScale = 0f;  // Freeze game world
+    }
+
+    private void UnfreezePlayer()
+    {
+        Debug.Log("Unfreezing Player.");
+
+        // Reinitialize Rigidbody2D properties to ensure gravityScale is set properly
+        rb.linearVelocity = Vector2.zero;       // Stop velocity
+        rb.angularVelocity = 0f;          // Stop rotation
+        rb.gravityScale = 1f;             // Restore gravity
+        rb.simulated = true;              // Enable physics simulation
+
+        // Log current gravity scale
+        Debug.Log("Gravity scale after unfreezing: " + rb.gravityScale);
+
+        Time.timeScale = 1f;  // Unfreeze game world
+    }
+
+    private void HandleMovement()
+    {
+        // Move forward constantly
         float distancePerFrame = speed * Time.deltaTime;
-
-        // Move the attached game object in the x coordinate.
         transform.Translate(distancePerFrame, 0, 0);
+
+        // Handle jump input
+        if (jumpPressed && IsGrounded())
+        {
+            Jump();
+        }
+    }
+
+    private bool IsGrounded()
+    {
+        return Physics2D.Raycast(
+            transform.position,
+            Vector2.down,
+            groundCheckDistance,
+            groundLayer
+        );
     }
 
     public void ResetPlayer()
@@ -37,10 +124,8 @@ public class PlayerController : MonoBehaviour
         transform.position = startPosition;
     }
 
-
     private void Jump()
     {
-        // Reset vertical speed for consistent jump height
         Vector2 velocity = rb.linearVelocity;
         velocity.y = 0;
         rb.linearVelocity = velocity;
@@ -49,9 +134,8 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Called automatically by PlayerInput (SendMessages) when the jump action is triggared
+    /// Called automatically by PlayerInput when the jump action is triggered
     /// </summary>
-
     public void OnJump()
     {
         jumpPressed = true;
@@ -70,7 +154,6 @@ public class PlayerController : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Visualize the ground check in editor
         Gizmos.color = Color.yellow;
         Gizmos.DrawLine(
             transform.position,
